@@ -1,0 +1,7 @@
+.env
+dist/
+build/
+__pycache__/
+*.spec
+*.icns
+*.iconset

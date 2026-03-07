@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI VC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .vc-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .vc-card .prose { font-size: 0.875rem; line-height: 1.6; color: #334155; }
+    .vc-card .prose p { margin-bottom: 0.5rem; }
+    .vc-card .prose ul, .vc-card .prose ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .vc-card .prose li { margin-bottom: 0.2rem; }
+    .vc-card .prose h1,.vc-card .prose h2,.vc-card .prose h3 { font-weight: 600; margin: 0.5rem 0 0.25rem; }
+    .vc-card .prose strong { font-weight: 600; }
+    .vc-card .prose code { background: #f1f5f9; padding: 0.1em 0.3em; border-radius: 0.25rem; font-size: 0.8em; }
+    .pulse-dot { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white px-6 py-4 flex items-center gap-3 shadow-lg">
+    <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-sm">$</div>
+    <div>
+      <h1 class="font-bold text-lg leading-tight">AI VC</h1>
+      <p class="text-slate-400 text-xs">Khosla · Sequoia · a16z · Founders Fund</p>
+    </div>
+    <!-- Phase badge -->
+    <div id="phase-badge" class="ml-auto hidden items-center gap-2 text-xs bg-slate-800 px-3 py-1.5 rounded-full text-slate-300">
+      <span class="pulse-dot w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+      <span id="phase-text">Working…</span>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Input card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Your question or pitch</label>
+      <textarea
+        id="q"
+        rows="3"
+        class="w-full border border-slate-200 rounded-xl p-4 text-slate-800 text-base resize-none transition-all"
+        placeholder="e.g. 'We're building AI-powered drug discovery for rare diseases. Seed stage, $2M ARR. Should we raise a Series A now?'"
+      ></textarea>
+
+      <!-- File attachment row -->
+      <div class="mt-3">
+        <label class="cursor-pointer inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors select-none">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+          </svg>
+          Attach files
+          <input
+            type="file" id="file-input" class="hidden"
+            accept=".pdf,.txt,.md,.rtf,.png,.jpg,.jpeg,.gif,.webp"
+            multiple
+            onchange="fileSelected(this)"
+          />
+        </label>
+        <div id="file-badges" class="flex flex-wrap gap-2 mt-2"></div>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-xs text-slate-400">Five legendary VCs give their take, then debate each other.</p>
+        <button
+          id="submit-btn"
+          onclick="askVCs()"
+          class="bg-slate-900 hover:bg-slate-700 active:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 text-sm"
+        >
+          Ask the VCs
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Round 1: Initial Takes -->
+    <section id="sec-initial" class="hidden">
+      <div class="flex items-baseline gap-3 mb-4">
+        <h2 class="text-base font-bold text-slate-800">Initial Takes</h2>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Round 1</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4">
+        <div id="card-vinod-initial" class="vc-card min-h-[120px]"></div>
+        <div id="card-doug-initial"  class="vc-card min-h-[120px]"></div>
+        <div id="card-ben-initial"   class="vc-card min-h-[120px]"></div>
+        <div id="card-peter-initial" class="vc-card min-h-[120px]"></div>
+        <div id="card-pat-initial"   class="vc-card min-h-[120px]"></div>
+      </div>
+    </section>
+
+    <!-- Round 2: Discussion -->
+    <section id="sec-discuss" class="hidden">
+      <div class="flex items-baseline gap-3 mb-4">
+        <h2 class="text-base font-bold text-slate-800">Board Discussion</h2>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Round 2</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4">
+        <div id="card-vinod-discuss" class="vc-card min-h-[120px]"></div>
+        <div id="card-doug-discuss"  class="vc-card min-h-[120px]"></div>
+        <div id="card-ben-discuss"   class="vc-card min-h-[120px]"></div>
+        <div id="card-peter-discuss" class="vc-card min-h-[120px]"></div>
+        <div id="card-pat-discuss"   class="vc-card min-h-[120px]"></div>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+// ── VC metadata (mirrors vcs.py VC_DISPLAY) ──────────────────────────
+const VCS = {
+  vinod: { name: "Vinod Khosla",  firm: "Khosla Ventures",       color: "#D97706", bg: "#FFFBEB", border: "#FCD34D", text: "#78350F" },
+  doug:  { name: "Doug Leone",    firm: "Sequoia Capital",        color: "#DC2626", bg: "#FEF2F2", border: "#FCA5A5", text: "#7F1D1D" },
+  ben:   { name: "Ben Horowitz",  firm: "Andreessen Horowitz",    color: "#475569", bg: "#F8FAFC", border: "#CBD5E1", text: "#1E293B" },
+  peter: { name: "Peter Thiel",   firm: "Founders Fund",          color: "#4F46E5", bg: "#EEF2FF", border: "#A5B4FC", text: "#1E1B4B" },
+  pat:   { name: "Pat Grady",     firm: "Sequoia Capital",        color: "#059669", bg: "#ECFDF5", border: "#6EE7B7", text: "#064E3B" },
+};
+
+function vcHeader(key, label) {
+  const vc = VCS[key];
+  return `
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="font-semibold text-sm" style="color:${vc.color}">${vc.name}</div>
+        <div class="text-xs text-slate-400">${vc.firm}</div>
+      </div>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:${vc.bg};color:${vc.text};border:1px solid ${vc.border}">${label}</span>
+    </div>
+  `;
+}
+
+function loadingCard(key, label) {
+  const vc = VCS[key];
+  return `
+    ${vcHeader(key, label)}
+    <div class="flex items-center gap-2 text-slate-400 text-sm">
+      <span class="pulse-dot w-2 h-2 rounded-full inline-block" style="background:${vc.color}"></span>
+      Thinking…
+    </div>
+  `;
+}
+
+function show(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ── File helpers ──────────────────────────────────────────────────────
+let selectedFiles = [];
+
+function fileSelected(input) {
+  Array.from(input.files).forEach(f => selectedFiles.push(f));
+  input.value = '';
+  renderFileBadges();
+}
+
+function removeFile(index) {
+  selectedFiles.splice(index, 1);
+  renderFileBadges();
+}
+
+function renderFileBadges() {
+  const container = document.getElementById('file-badges');
+  container.innerHTML = selectedFiles.map((f, i) => `
+    <div class="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-medium">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      <span>${f.name}</span>
+      <button onclick="removeFile(${i})" class="ml-1 hover:text-red-500 font-bold leading-none">×</button>
+    </div>
+  `).join('');
+}
+
+// ── Main logic ────────────────────────────────────────────────────────
+async function askVCs() {
+  const qEl  = document.getElementById('q');
+  const btn  = document.getElementById('submit-btn');
+  const question = qEl.value.trim();
+  if (!question) { qEl.focus(); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+  document.getElementById('phase-badge').style.display = 'flex';
+
+  ['sec-initial', 'sec-discuss'].forEach(id =>
+    document.getElementById(id).classList.add('hidden')
+  );
+
+  // Pre-populate loading cards
+  show('sec-initial');
+  for (const key of Object.keys(VCS)) {
+    document.getElementById(`card-${key}-initial`).innerHTML  = loadingCard(key, 'Initial Take');
+    document.getElementById(`card-${key}-discuss`).innerHTML  = '';
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('question', question);
+    selectedFiles.forEach(f => formData.append('files', f));
+
+    const resp = await fetch('/api/ask', { method: 'POST', body: formData });
+    if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();
+
+      for (const part of parts) {
+        if (!part.trim()) continue;
+        const lines = part.split('\n');
+        const eventLine = lines.find(l => l.startsWith('event:'));
+        const dataLine  = lines.find(l => l.startsWith('data:'));
+        if (!eventLine || !dataLine) continue;
+
+        const event = eventLine.slice(6).trim();
+        let data;
+        try { data = JSON.parse(dataLine.slice(5).trim()); } catch { continue; }
+
+        if (event === 'phase') {
+          document.getElementById('phase-text').textContent = data.message;
+          if (data.phase === 'discussion') {
+            show('sec-discuss');
+            for (const key of Object.keys(VCS)) {
+              document.getElementById(`card-${key}-discuss`).innerHTML = loadingCard(key, 'Response');
+            }
+          }
+        } else if (event === 'vc_take') {
+          const card = document.getElementById(`card-${data.vc}-initial`);
+          card.innerHTML = vcHeader(data.vc, 'Initial Take') +
+            `<div class="prose">${marked.parse(data.answer)}</div>`;
+        } else if (event === 'vc_response') {
+          const card = document.getElementById(`card-${data.vc}-discuss`);
+          card.innerHTML = vcHeader(data.vc, 'Response') +
+            `<div class="prose">${marked.parse(data.response)}</div>`;
+        } else if (event === 'error') {
+          alert('Error: ' + data.message);
+        } else if (event === 'done') {
+          document.getElementById('phase-badge').style.display = 'none';
+          btn.disabled = false;
+          btn.innerHTML = 'Ask the VCs <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
+        }
+      }
+    }
+  } catch (err) {
+    alert('Request failed: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Ask the VCs';
+    document.getElementById('phase-badge').style.display = 'none';
+  }
+}
+
+// Submit on Cmd+Enter / Ctrl+Enter
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') askVCs();
+});
+</script>
+</body>
+</html>
