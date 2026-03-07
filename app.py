@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dotenv import load_dotenv
-load_dotenv(Path.home() / 'ai-board' / '.env')
+load_dotenv(Path.home() / 'ai-vc' / '.env')
 
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import HTMLResponse, StreamingResponse

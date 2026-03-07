@@ -16,7 +16,7 @@ A macOS desktop app that pitches a question to five famous VC personas — Vinod
 - `build.sh` — generates icon, runs PyInstaller
 
 ## API keys
-Loaded from `~/ai-board/.env` (shared with ai-board). Required keys:
+Loaded from `~/ai-vc/.env` (symlinked to `~/ai-board/.env`). Required keys:
 - `ANTHROPIC_API_KEY`
 - `OPENAI_API_KEY`
 - `GOOGLE_API_KEY`

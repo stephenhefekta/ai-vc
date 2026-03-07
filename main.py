@@ -8,7 +8,7 @@ if getattr(sys, 'frozen', False):
 
 # Load API keys from ~/ai-board/.env before importing app
 from dotenv import load_dotenv
-load_dotenv(Path.home() / 'ai-board' / '.env')
+load_dotenv(Path.home() / 'ai-vc' / '.env')
 
 import socket
 import threading
