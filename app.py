@@ -8,14 +8,50 @@ from typing import List, Optional, Tuple
 from dotenv import load_dotenv
 load_dotenv(Path.home() / 'ai-vc' / '.env')
 
-from fastapi import FastAPI, File, Form, UploadFile
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from vcs import Attachment, VCS, VC_DISPLAY, call_vc
 
 app = FastAPI(title="AI VC")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# ── History (persisted to disk, survives app restarts) ───────────────
+HISTORY_FILE = Path.home() / 'ai-vc' / 'history.json'
+MAX_SESSIONS = 100
+
+def _read_history():
+    if HISTORY_FILE.exists():
+        try:
+            return json.loads(HISTORY_FILE.read_text())
+        except Exception:
+            pass
+    return []
+
+def _write_history(sessions):
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    HISTORY_FILE.write_text(json.dumps(sessions))
+
+@app.get("/api/history")
+async def get_history():
+    return JSONResponse(_read_history())
+
+@app.post("/api/history")
+async def save_session(request: Request):
+    session = await request.json()
+    sessions = _read_history()
+    sessions.insert(0, session)
+    if len(sessions) > MAX_SESSIONS:
+        sessions = sessions[:MAX_SESSIONS]
+    _write_history(sessions)
+    return JSONResponse({"ok": True})
+
+@app.delete("/api/history/{session_id}")
+async def delete_session(session_id: str):
+    sessions = [s for s in _read_history() if s.get("id") != session_id]
+    _write_history(sessions)
+    return JSONResponse({"ok": True})
 
 
 async def _process_upload(file: UploadFile) -> Attachment:
