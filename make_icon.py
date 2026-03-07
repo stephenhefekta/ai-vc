@@ -1,41 +1,45 @@
 #!/usr/bin/env python3
-"""Generate AI VC.icns — 5 VC dots on a dark rounded background."""
+"""Generate AI VC.icns — bold $ sign on dark rounded background."""
 
 import subprocess
 import shutil
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
-# One dot per VC: Vinod, Doug, Ben, Peter, Pat
-COLORS = ["#D97706", "#DC2626", "#475569", "#4F46E5", "#059669"]
-BG = "#0f172a"  # dark slate
+BG    = "#0f172a"   # dark slate
+GREEN = "#10b981"   # emerald-500
+
+FONT_PATH = "/System/Library/Fonts/Supplemental/Arial Black.ttf"
 
 
 def make_frame(size: int) -> Image.Image:
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    img  = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
     # Rounded background
     radius = size // 5
     draw.rounded_rectangle([0, 0, size - 1, size - 1], radius=radius, fill=BG)
 
-    # 3-2 arrangement of circles
-    pad = size * 0.12
-    dot_d = (size - 2 * pad) / 3.2
-    cr = dot_d * 0.40
+    # Draw $ using Arial Black, sized to fill ~70% of the icon
+    font_size = int(size * 0.72)
+    font = ImageFont.truetype(FONT_PATH, font_size)
 
-    # Row 1: 3 dots
-    row1_y = size * 0.28
-    for i in range(3):
-        cx = pad + dot_d * 0.5 + i * ((size - 2 * pad) / 2.5)
-        draw.ellipse([cx - cr, row1_y - cr, cx + cr, row1_y + cr], fill=COLORS[i])
+    cx, cy = size / 2, size / 2
 
-    # Row 2: 2 dots centred
-    row2_y = size * 0.70
-    for i in range(2):
-        cx = size * 0.28 + i * size * 0.44
-        draw.ellipse([cx - cr, row2_y - cr, cx + cr, row2_y + cr], fill=COLORS[3 + i])
+    # Measure text
+    bbox = font.getbbox("$")
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    x = cx - tw / 2 - bbox[0]
+    y = cy - th / 2 - bbox[1]
+
+    # Subtle shadow for depth
+    shadow_offset = max(1, size // 64)
+    draw.text((x + shadow_offset, y + shadow_offset), "$", font=font, fill="#065f46")
+
+    # Main $ in emerald
+    draw.text((x, y), "$", font=font, fill=GREEN)
 
     return img
 
