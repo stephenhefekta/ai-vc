@@ -6,9 +6,9 @@ from pathlib import Path
 if getattr(sys, 'frozen', False):
     os.chdir(sys._MEIPASS)
 
-# Load API keys from ~/ai-board/.env before importing app
+# Load API keys from ~/Developer/ai-board/.env before importing app
 from dotenv import load_dotenv
-load_dotenv(Path.home() / 'ai-vc' / '.env')
+load_dotenv(Path.home() / 'Developer' / 'ai-vc' / '.env')
 
 import threading
 import time

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dotenv import load_dotenv
-load_dotenv(Path.home() / 'ai-vc' / '.env')
+load_dotenv(Path.home() / 'Developer' / 'ai-vc' / '.env')
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
@@ -18,7 +18,7 @@ app = FastAPI(title="AI VC")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ── History (persisted to disk, survives app restarts) ───────────────
-HISTORY_FILE = Path.home() / 'ai-vc' / 'history.json'
+HISTORY_FILE = Path.home() / 'Developer' / 'ai-vc' / 'history.json'
 MAX_SESSIONS = 100
 
 def _read_history():
